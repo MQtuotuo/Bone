@@ -6,6 +6,7 @@ import tarfile
 import numpy as np
 from scipy.io import loadmat
 from shutil import copyfile, rmtree
+from sklearn.cross_validation import train_test_split
 
 import sys
 
@@ -29,40 +30,51 @@ def download_file(url, dest=None):
     urlretrieve(url, dest)
 
 
-# Download the Oxford102 dataset into the current directory
+# Download the bone age dataset into the current directory
 if not os.path.exists(data_path):
     os.mkdir(data_path)
 
-flowers_archive_path = os.path.join(data_path, '102flowers.tgz')
-if not os.path.isfile(flowers_archive_path):
-    print ('Downloading images...')
-    download_file('http://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz')
-tarfile.open(flowers_archive_path).extractall(path=data_path)
 
-image_labels_path = os.path.join(data_path, 'imagelabels.mat')
-if not os.path.isfile(image_labels_path):
-    print("Downloading image labels...")
-    download_file('http://www.robots.ox.ac.uk/~vgg/data/flowers/102/imagelabels.mat')
+# Get image labels from female.csv (the 'age' column, just a round now)
+import csv
+from collections import defaultdict
+import numpy as np
 
-setid_path = os.path.join(data_path, 'setid.mat')
-if not os.path.isfile(setid_path):
-    print("Downloading train/test/valid splits...")
-    download_file('http://www.robots.ox.ac.uk/~vgg/data/flowers/102/setid.mat')
+columns = defaultdict(list) # each value in each column is appended to a list
+
+with open('data/female.csv') as f:
+    reader = csv.DictReader(f) # read rows into a dictionary format
+    for row in reader: # read a row as {column1: value1, column2: value2,...}
+        for (k, v) in row.items(): # go over each column name and value
+            columns[k].append(v) # append the value into the appropriate list
+                                 # based on column name k
+idx_all = np.array(columns['img_num'], dtype=np.int)
+image_labels = columns['age']
+image_labels = np.array(image_labels, dtype=np.int)
+#image_labels = np.transpose(image_labels)
+
+#print(image_labels)
+#print(np.shape(image_labels))
+#print(type(image_labels))
 
 # Read .mat file containing training, testing, and validation sets.
-setid = loadmat(setid_path)
+#setid = loadmat(setid_path)
 
-idx_train = setid['trnid'][0] - 1
-idx_test = setid['tstid'][0] - 1
-idx_valid = setid['valid'][0] - 1
+#idx_train = setid['trnid'][0] - 1
+#idx_test = setid['tstid'][0] - 1
+#idx_valid = setid['valid'][0] - 1
+idx_train, idx_test = train_test_split(idx_all, test_size=0.3)
+idx_test, idx_valid = train_test_split(idx_test, test_size=0.5)
+
 
 # Read .mat file containing image labels.
-image_labels = loadmat(image_labels_path)['labels'][0]
+#image_labels = loadmat(image_labels_path)['labels'][0]
 
 # Subtract one to get 0-based labels
-image_labels -= 1
+#image_labels -= 1
 
-files = sorted(glob.glob(os.path.join(data_path, 'jpg', '*.jpg')))
+
+files = sorted(glob.glob(os.path.join(data_path, 'female', '*.jpg')))
 labels = np.array(list(zip(files, image_labels)))
 #labels = np.dstack((files, image_labels))
 
@@ -82,7 +94,7 @@ def move_files(dir_name, labels):
     if not os.path.exists(cur_dir_path):
         os.mkdir(cur_dir_path)
 
-    for i in range(0, 102):
+    for i in range(0, 19):
         class_dir = os.path.join(config.data_dir, dir_name, str(i))
         os.mkdir(class_dir)
 
@@ -92,6 +104,20 @@ def move_files(dir_name, labels):
         copyfile(src, dst)
 
 
-move_files('train', labels[idx_test, :])
-move_files('test', labels[idx_train, :])
-move_files('valid', labels[idx_valid, :])
+#print(labels)
+#print(idx_train)
+#print(idx_train[0])
+#print(idx_all)
+#idx = idx_all.tolist().index(idx_train[0])
+#print(idx)
+
+def get_index(idx_array):
+    index_array = np.array([], dtype=np.int)
+    for i in idx_array:
+        idx = idx_all.tolist().index(i)
+        index_array = np.append(index_array, idx)
+    return index_array
+
+move_files('train', labels[get_index(idx_train), :])
+move_files('test', labels[get_index(idx_test), :])
+move_files('valid', labels[get_index(idx_valid), :])
