@@ -109,16 +109,16 @@ def predict(path):
             out = model.predict(np.array(inputs))
             end = time.clock()
             predictions[n_from:n_to] = np.argmax(out, axis=1)
-            print 'Prediction on batch {} took: {}'.format(n, end - start)
+            print ('Prediction on batch {} took: {}'.format(n, end - start))
 
     if not args.store_activations:
         for i, p in enumerate(predictions):
             recognized_class = classes_in_keras_format.keys()[classes_in_keras_format.values().index(p)]
-            print '| should be {} ({}) -> predicted as {} ({})'.format(y_trues[i], files[i].split(os.sep)[-2], p,
-                                                                       recognized_class)
+            print ('| should be {} ({}) -> predicted as {} ({})'.format(y_trues[i], files[i].split(os.sep)[-2], p,
+                                                                       recognized_class))
 
         if args.accuracy:
-            print 'Accuracy {}'.format(accuracy_score(y_true=y_trues, y_pred=predictions))
+            print ('Accuracy {}'.format(accuracy_score(y_true=y_trues, y_pred=predictions)))
 
         if args.plot_confusion_matrix:
             cnf_matrix = confusion_matrix(y_trues, predictions)
@@ -149,4 +149,4 @@ if __name__ == '__main__':
 
     if args.execution_time:
         toc = time.clock()
-        print 'Time: %s' % (toc - tic)
+        print ('Time: %s' % (toc - tic))
