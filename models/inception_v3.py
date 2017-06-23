@@ -27,7 +27,8 @@ class InceptionV3(BaseModel):
 
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
-        x = Dense(1024, activation='elu', name=self.noveltyDetectionLayerName)(x)
+        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
+        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
         predictions = Dense(len(config.classes), activation='softmax')(x)
 
         self.model = Model(input=base_model.input, output=predictions)

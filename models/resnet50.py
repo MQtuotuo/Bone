@@ -22,9 +22,9 @@ class ResNet50(BaseModel):
         x = base_model.output
         x = Flatten()(x)
         x = Dropout(0.5)(x)
-        # we could achieve almost the same accuracy without this layer, buy this one helps later
-        # for novelty detection part and brings much more useful features.
-        x = Dense(2048, activation='elu', name=self.noveltyDetectionLayerName)(x)
+    
+        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
+        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
         x = Dropout(0.5)(x)
         predictions = Dense(len(config.classes), activation='softmax', name='predictions')(x)
 
