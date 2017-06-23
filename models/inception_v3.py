@@ -11,6 +11,7 @@ from models.base_model import BaseModel
 
 class InceptionV3(BaseModel):
     noveltyDetectionLayerName = 'fc1'
+    noveltyDetectionLayerName1 = 'fc2'
 
     def __init__(self, *args, **kwargs):
         super(InceptionV3, self).__init__(*args, **kwargs)
@@ -28,7 +29,7 @@ class InceptionV3(BaseModel):
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
-        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
+        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName1)(x)
         predictions = Dense(len(config.classes), activation='softmax')(x)
 
         self.model = Model(input=base_model.input, output=predictions)

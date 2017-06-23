@@ -7,7 +7,8 @@ from models.base_model import BaseModel
 
 
 class VGG16(BaseModel):
-    noveltyDetectionLayerName = 'fc2'
+    noveltyDetectionLayerName = 'fc1'
+     noveltyDetectionLayerName1 = 'fc2'
 
     def __init__(self, *args, **kwargs):
         super(VGG16, self).__init__(*args, **kwargs)
@@ -20,7 +21,7 @@ class VGG16(BaseModel):
         x = Flatten()(x)
         x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
         x = Dropout(0.6)(x)
-        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
+        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName1)(x)
         x = Dropout(0.6)(x)
         predictions = Dense(len(config.classes), activation='softmax', name='predictions')(x)
 

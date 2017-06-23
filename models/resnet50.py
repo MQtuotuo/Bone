@@ -8,6 +8,7 @@ from models.base_model import BaseModel
 
 class ResNet50(BaseModel):
     noveltyDetectionLayerName = 'fc1'
+    noveltyDetectionLayerName1 = 'fc2'
 
     def __init__(self, *args, **kwargs):
         super(ResNet50, self).__init__(*args, **kwargs)
@@ -24,7 +25,7 @@ class ResNet50(BaseModel):
         x = Dropout(0.5)(x)
     
         x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
-        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName)(x)
+        x = Dense(128, activation='elu', name=self.noveltyDetectionLayerName1)(x)
         x = Dropout(0.5)(x)
         predictions = Dense(len(config.classes), activation='softmax', name='predictions')(x)
 
