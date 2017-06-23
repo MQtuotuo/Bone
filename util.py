@@ -122,6 +122,7 @@ def get_class_weight(d):
     class_number = dict()
     dirs = sorted([o for o in os.listdir(d) if os.path.isdir(os.path.join(d, o))])
     k = 0
+    print(dirs)
     for class_name in dirs:
         class_number[k] = 0
         iglob_iter = glob.iglob(os.path.join(d, class_name, '*.*'))
@@ -130,6 +131,8 @@ def get_class_weight(d):
             if ext[1:] in white_list_formats:
                 class_number[k] += 1
         k += 1
+
+    print(class_number)
 
     total = sum(class_number.values())
     max_samples = max(class_number.values())
