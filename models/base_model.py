@@ -6,8 +6,10 @@ from keras.layers import Input
 from keras.optimizers import SGD
 import numpy as np
 from sklearn.externals import joblib
-
+import matplotlib.pyplot as plt
+from keras.callbacks import CSVLogger, TensorBoard
 import config
+from time import time
 
 
 class BaseModel(object):
@@ -22,6 +24,7 @@ class BaseModel(object):
         self.freeze_layers_number = freeze_layers_number
         self.img_size = (224, 224)
 
+
     def _create(self):
         raise NotImplementedError('subclasses must override _create()')
 
@@ -33,15 +36,36 @@ class BaseModel(object):
             optimizer=SGD(lr=1e-4, decay=1e-6, momentum=0.9, nesterov=True),
             metrics=['accuracy'])
 
-        self.model.fit_generator(
+
+        history = self.model.fit_generator(
             self.get_train_datagen(rotation_range=30., shear_range=0.2, zoom_range=0.2, horizontal_flip=True),
             samples_per_epoch=config.nb_train_samples,
             nb_epoch=self.nb_epoch,
             validation_data=self.get_validation_datagen(),
             nb_val_samples=config.nb_validation_samples,
-            callbacks=self.get_callbacks(config.get_fine_tuned_weights_path(), patience=self.fine_tuning_patience),
+            callbacks=self.get_callbacks(config.get_fine_tuned_weights_path(), patience=self.fine_tuning_patience
+        ),
             class_weight=self.class_weight)
         self.model.save(config.get_model_path())
+
+        # list all data in history
+        print(history.history.keys())
+        # summarize history for accuracy
+        plt.plot(history.history['acc'])
+        plt.plot(history.history['val_acc'])
+        plt.title('model accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+        # summarize history for loss
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
 
     def train(self):
         print("Creating model...")
@@ -49,6 +73,7 @@ class BaseModel(object):
         print("Model is created")
         print("Fine tuning...")
         self._fine_tuning()
+
         self.save_classes()
 
     def load(self):
@@ -82,7 +107,15 @@ class BaseModel(object):
     def get_callbacks(weights_path, patience=30, monitor='val_loss'):
         early_stopping = EarlyStopping(verbose=1, patience=patience, monitor=monitor)
         model_checkpoint = ModelCheckpoint(weights_path, save_best_only=True, save_weights_only=True, monitor=monitor)
-        return [early_stopping, model_checkpoint]
+        csv_logger = CSVLogger('log.csv', append=True, separator=',')
+        # 	tensorboard --logdir=logs/
+        #tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+        # 	tensorboard --logdir=logs/
+        tensorboard = TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32, write_graph=True,
+                                  write_grads=False,
+                                  write_images=False, embeddings_freq=0, embeddings_layer_names=None,
+                                  embeddings_metadata=None)
+        return [early_stopping, model_checkpoint, csv_logger, tensorboard]
 
     @staticmethod
     def apply_mean(image_data_generator):

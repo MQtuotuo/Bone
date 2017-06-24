@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os
 import glob
 import urllib
@@ -67,11 +66,10 @@ idx_train, idx_test = train_test_split(idx_all, test_size=0.3)
 idx_test, idx_valid = train_test_split(idx_test, test_size=0.5)
 
 
-# Read .mat file containing image labels.
-#image_labels = loadmat(image_labels_path)['labels'][0]
 
 # Subtract one to get 0-based labels
 #image_labels -= 1
+
 
 
 files = sorted(glob.glob(os.path.join(data_path, 'female', '*.jpg')))
